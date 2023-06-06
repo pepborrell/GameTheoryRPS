@@ -131,6 +131,19 @@ class Grid:
 class GridVisualizer:
     def __init__(self, grid: Grid) -> None:
         self.grid = grid
+        # Custom color for every strategy value
+        unnormalized_colors = [
+            (255, 255, 255),  # white
+            (0, 48, 73),  # dark blue
+            (214, 40, 40),  # dark red
+            (247, 127, 0),  # orange
+            (252, 191, 73),  # yellow
+            (210, 149, 191),  # lilac
+            (1, 0, 1),  # magenta
+            (0, 1, 1),  # cyan
+        ]
+        self.colors = [(r / 255, g / 255, b / 255) for r, g, b in unnormalized_colors]
+        assert len(self.colors) >= len(self.grid.game.possible_strategies), "Not enough colors for this game"
 
     def strategy_grid(self) -> np.ndarray:
         strat_grid = np.zeros_like(self.grid.grid)
@@ -140,9 +153,17 @@ class GridVisualizer:
                     strat_grid[i, j] = self.grid.agents[self.grid.grid[i, j]].strategy
         return strat_grid
 
+    def grid_to_rgb(self, strat_grid: np.ndarray) -> np.ndarray:
+        rgb_grid = np.zeros((self.grid.size, self.grid.size, 3))
+        for i in range(self.grid.size):
+            for j in range(self.grid.size):
+                rgb_grid[i, j] = self.colors[int(strat_grid[i, j])]
+        return rgb_grid
+
     def visualize(self) -> None:
         strat_grid = self.strategy_grid()
-        plt.imshow(strat_grid, cmap="viridis")
+        rgb_grid = self.grid_to_rgb(strat_grid)
+        plt.imshow(rgb_grid)
         plt.show(block=False)
         plt.pause(0.01)
         plt.close()
