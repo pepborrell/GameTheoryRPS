@@ -17,7 +17,7 @@ class Grid:
     def __init__(self, size: int = 50, p_agents: float = 0.5, game: GameRules = PrisonersDilemma) -> None:
         self.size = size
         self.grid = np.full((size, size), fill_value=-1, dtype=np.int64)
-        self.game = game()
+        self.game: GameRules = game()
         self.n_agents: int = int(p_agents * size**2)
         self.parameters = {
             "m": 5,
@@ -81,16 +81,28 @@ class Grid:
         self.agents[agent_id].last_outcome = total_outcome
 
         # Step 2: Update strategy
-        # TODO: Add noise on strategy update
         neighbours = self.get_neighbours(pos)
         neighbour_strategies = self.get_neighbour_strategies(neighbours)
-        if len(neighbours) > 0:
-            neighbour_outcomes = [self.agents[neighbour].last_outcome for neighbour in neighbours]
-            if max(neighbour_outcomes) > total_outcome:
-                self.agents[agent_id].just_changed_strategy = True
-                self.agents[agent_id].strategy = neighbour_strategies[np.argmax(neighbour_outcomes)]
-            else:
-                self.agents[agent_id].just_changed_strategy = False
+
+        # Choose random strategy with probability r
+        if np.random.rand() < self.parameters["r"]:
+            self.agents[agent_id].just_changed_strategy = True
+            if np.random.rand() < self.parameters["q"]:
+                self.agents[agent_id].strategy = (
+                    self.game.possible_strategies[0]  # cooperation
+                    if np.random.rand() < self.parameters["q"]
+                    else np.random.choice(self.game.possible_strategies[1:])  # defection chosen at random
+                )
+
+        # With probability 1 - r, imitate best neighbouring strategy
+        else:
+            if len(neighbours) > 0:
+                neighbour_outcomes = [self.agents[neighbour].last_outcome for neighbour in neighbours]
+                if max(neighbour_outcomes) > total_outcome:
+                    self.agents[agent_id].just_changed_strategy = True
+                    self.agents[agent_id].strategy = neighbour_strategies[np.argmax(neighbour_outcomes)]
+                else:
+                    self.agents[agent_id].just_changed_strategy = False
 
         # Step 3: Move to best empty cell
         # Neighbourhood is the (2m+1) x (2m+1) square around the agent
