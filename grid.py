@@ -137,14 +137,3 @@ class GridVisualizer:
         plt.show(block=False)
         plt.pause(0.01)
         plt.close()
-
-
-if __name__ == "__main__":
-    np.random.seed(0)
-    grid = Grid(game=ModifiedRockPaperScissors)
-    for i in range(25):
-        print(f"Step {i}")
-        grid.step()
-        vis = GridVisualizer(grid)
-        vis.visualize()
-    print(vis.strategy_grid())
