@@ -79,11 +79,6 @@ class Grid:
         pos = self.get_agent_position(agent_id)
         total_outcome = self.calculate_outcome_position(pos, self.agents[agent_id].strategy)
         self.agents[agent_id].last_outcome = total_outcome
-        # outcomes = [
-        #     self.game.calculate_outcome(self.agents[agent_id].strategy, neighbour_strategy)
-        #     for neighbour_strategy in neighbour_strategies
-        # ]
-        # total_outcome = sum(outcomes)
 
         # Step 2: Update strategy
         # TODO: Add noise on strategy update
@@ -94,6 +89,8 @@ class Grid:
             if max(neighbour_outcomes) > total_outcome:
                 self.agents[agent_id].just_changed_strategy = True
                 self.agents[agent_id].strategy = neighbour_strategies[np.argmax(neighbour_outcomes)]
+            else:
+                self.agents[agent_id].just_changed_strategy = False
 
         # Step 3: Move to best empty cell
         # Neighbourhood is the (2m+1) x (2m+1) square around the agent
