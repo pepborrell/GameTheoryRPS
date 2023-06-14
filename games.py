@@ -96,7 +96,7 @@ class ModifiedRockPaperScissors(GameRules):
             if move_2 == "R":
                 return self.T
             if move_2 == "P":
-                return self.P
+                return self.P  # punishment for mutual defection
             if move_2 == "S":
                 return self.S
         if move_1 == "S":
@@ -104,6 +104,68 @@ class ModifiedRockPaperScissors(GameRules):
                 return self.S
             if move_2 == "P":
                 return self.T
+            if move_2 == "S":
+                return self.P
+
+        raise ValueError("Invalid strategy combination")
+
+
+class CollaborativeModifiedRPS(ModifiedRockPaperScissors):
+    def calculate_outcome(self, strategy_1: int, strategy_2: int) -> int:
+        # Transform strategy to move in ['R', 'P', 'S'] for readability
+        move_1 = self.get_move(strategy_1)
+        move_2 = self.get_move(strategy_2)
+
+        if move_1 == "R":
+            if move_2 == "R":
+                return self.R  # reward for cooperation
+            if move_2 == "P":
+                return self.S  # sucker's payoff
+            if move_2 == "S":
+                return self.T  # temptation to defect
+        if move_1 == "P":
+            if move_2 == "R":
+                return self.T
+            if move_2 == "P":
+                return self.R
+            if move_2 == "S":
+                return self.S
+        if move_1 == "S":
+            if move_2 == "R":
+                return self.S
+            if move_2 == "P":
+                return self.T
+            if move_2 == "S":
+                return self.P
+
+        raise ValueError("Invalid strategy combination")
+
+
+class StableRPS(ModifiedRockPaperScissors):
+    def calculate_outcome(self, strategy_1: int, strategy_2: int) -> int:
+        # Transform strategy to move in ['R', 'P', 'S'] for readability
+        move_1 = self.get_move(strategy_1)
+        move_2 = self.get_move(strategy_2)
+
+        if move_1 == "R":
+            if move_2 == "R":
+                return self.R  # reward for cooperation
+            if move_2 == "P":
+                return self.S  # sucker's payoff
+            if move_2 == "S":
+                return self.T  # temptation to defect
+        if move_1 == "P":
+            if move_2 == "R":
+                return self.T
+            if move_2 == "P":
+                return self.P
+            if move_2 == "S":
+                return self.S
+        if move_1 == "S":
+            if move_2 == "R":
+                return self.S
+            if move_2 == "P":
+                return self.P
             if move_2 == "S":
                 return self.P
 
