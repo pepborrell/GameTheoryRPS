@@ -1,3 +1,4 @@
+import os
 from typing import List, Tuple
 
 import matplotlib.pyplot as plt
@@ -30,6 +31,8 @@ class Grid:
         for i, pos in enumerate(positions):
             self.grid[pos] = i
 
+        self.total_payoffs: List[float] = []
+
     def assign_initial_positions(self) -> List[Tuple[int, int]]:
         positions: List[Tuple[int, int]] = []
         for _ in range(self.n_agents):
@@ -44,7 +47,7 @@ class Grid:
         neighbours: List[int] = []
         for i in range(-1, 2):
             for j in range(-1, 2):
-                if (i, j) != (0, 0):
+                if abs(i + j) == 1:
                     neighbour_pos: Tuple[int, int] = ((position[0] + i) % self.size, (position[1] + j) % self.size)
                     if self.grid[neighbour_pos].item() != -1:
                         neighbours.append(self.grid[neighbour_pos].item())
@@ -126,6 +129,9 @@ class Grid:
         agent_ids = np.random.permutation(self.n_agents)
         for agent_id in agent_ids:
             self.agent_step(agent_id)
+        # Compute total step payoff
+        self.total_payoff = sum([agent.last_outcome for agent in self.agents])
+        self.total_payoffs.append(self.total_payoff)
 
 
 class GridVisualizer:
@@ -160,10 +166,36 @@ class GridVisualizer:
                 rgb_grid[i, j] = self.colors[int(strat_grid[i, j])]
         return rgb_grid
 
-    def visualize(self) -> None:
+    def generate_plot(self, step: int = None) -> None:
         strat_grid = self.strategy_grid()
         rgb_grid = self.grid_to_rgb(strat_grid)
-        plt.imshow(rgb_grid)
+        total_payoff = self.grid.total_payoff
+        fig, ax = plt.subplots()
+        ax.imshow(rgb_grid)
+        ax.set_xticks([])
+        ax.set_yticks([])
+        if step is not None:
+            ax.set_title(f"Step {step}")
+            # ax.set_title(f"Step {step}\nTotal payoff: {total_payoff:.2f}")
+        return fig, ax
+
+    def visualize(self, step: int = None) -> None:
+        fig, ax = self.generate_plot(step)
         plt.show(block=False)
         plt.pause(0.01)
+        plt.close()
+
+    def save(self, step: int, exp_name: str) -> None:
+        fig, ax = self.generate_plot(step)
+        if not os.path.exists(f"plots/{exp_name}"):
+            os.makedirs(f"plots/{exp_name}")
+        plt.savefig(f"plots/{exp_name}/step_{step}.png")
+        plt.close()
+
+    def save_payoff_plot(self, exp_name: str) -> None:
+        fig, ax = plt.subplots()
+        ax.plot(self.grid.total_payoffs)
+        ax.set_xlabel("Step")
+        ax.set_ylabel("Total payoff")
+        plt.savefig(f"plots/{exp_name}/payoff_plot.png")
         plt.close()
