@@ -10,6 +10,7 @@ from games import GameRules, ModifiedRockPaperScissors, PrisonersDilemma
 class Agent:
     def __init__(self, n_moves: int) -> None:
         self.strategy: int = np.random.choice([i + 1 for i in range(n_moves)])  # 1: rock, 2: paper, 3: scissors
+        # self.strategy: int = 1
         self.just_changed_strategy: bool = False
         self.last_outcome: int = -1
 
@@ -27,6 +28,7 @@ class Grid:
         }
 
         positions: List[Tuple[int, int]] = self.assign_initial_positions()
+        # positions: List[Tuple[int, int]] = self.square_initial_positions()
         self.agents: List[Agent] = [Agent(self.game.n_moves) for _ in range(self.n_agents)]
         for i, pos in enumerate(positions):
             self.grid[pos] = i
@@ -41,6 +43,18 @@ class Grid:
                 if position not in positions:
                     positions.append(position)
                     break
+        return positions
+
+    def square_initial_positions(self) -> List[Tuple[int, int]]:
+        positions: List[Tuple[int, int]] = []
+        square_size = int(np.floor(np.sqrt(self.n_agents)))
+        for i in range(square_size):
+            for j in range(square_size):
+                positions.append((i, j))
+        rest = self.n_agents - square_size**2
+        for i in range(rest):
+            positions.append((square_size, i))
+
         return positions
 
     def get_neighbours(self, position: Tuple[int, int]) -> List[int]:
@@ -177,6 +191,7 @@ class GridVisualizer:
         if step is not None:
             ax.set_title(f"Step {step}")
             # ax.set_title(f"Step {step}\nTotal payoff: {total_payoff:.2f}")
+        fig.tight_layout()
         return fig, ax
 
     def visualize(self, step: int = None) -> None:
@@ -189,7 +204,7 @@ class GridVisualizer:
         fig, ax = self.generate_plot(step)
         if not os.path.exists(f"plots/{exp_name}"):
             os.makedirs(f"plots/{exp_name}")
-        plt.savefig(f"plots/{exp_name}/step_{step}.png")
+        plt.savefig(f"plots/{exp_name}/step_{step}.png", bbox_inches="tight", pad_inches=0.05)
         plt.close()
 
     def save_payoff_plot(self, exp_name: str) -> None:
@@ -198,4 +213,11 @@ class GridVisualizer:
         ax.set_xlabel("Step")
         ax.set_ylabel("Total payoff")
         plt.savefig(f"plots/{exp_name}/payoff_plot.png")
+
+        average_payoffs = [payoff / self.grid.n_agents for payoff in self.grid.total_payoffs]
+        fig, ax = plt.subplots()
+        ax.plot(average_payoffs)
+        ax.set_xlabel("Step")
+        ax.set_ylabel("Average payoff per agent")
+        plt.savefig(f"plots/{exp_name}/avg_payoff_plot.png")
         plt.close()
